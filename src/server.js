@@ -105,9 +105,22 @@ app.get('/', (req, res) => {
 
 // POST /create-meeting
 app.post('/create-meeting', async (req, res) => {
+    // DEBUGGING LOGS
+    console.log('🎯 ===== CREATE MEETING CALLED =====');
+    console.log('📥 Request body:', JSON.stringify(req.body, null, 2));
+    console.log('📥 Headers:', {
+        'content-type': req.headers['content-type'],
+        'origin': req.headers['origin']
+    });
+
     try {
         const { userId } = req.body;
-        if (!userId) return res.status(400).json({ error: "userId required" });
+        console.log('👤 Extracted userId:', userId);
+
+        if (!userId) {
+            console.error('❌ userId is missing!');
+            return res.status(400).json({ error: "userId required" });
+        }
 
         // 1. Generate IDs
         const part1 = Math.random().toString(36).substring(2, 5);
@@ -116,10 +129,15 @@ app.post('/create-meeting', async (req, res) => {
         const meetingId = `${part1}-${part2}-${part3}`;
         const password = Math.random().toString(36).substring(2, 8);
 
+        console.log('🎲 Generated meetingId:', meetingId);
+        console.log('🔐 Generated password:', password);
+
         // Canonical Room Name (Single Source of Truth)
         const roomName = `room_${meetingId}_${crypto.randomBytes(4).toString('hex')}`;
+        console.log('🏠 Room name:', roomName);
 
         // 2. Store in Supabase
+        console.log('💾 Attempting to store in Supabase...');
         const { error } = await supabase
             .from('meetings')
             .insert({
@@ -130,23 +148,47 @@ app.post('/create-meeting', async (req, res) => {
                 is_active: true
             });
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Supabase error:', error);
+            throw error;
+        }
+        console.log('✅ Supabase insert successful');
 
         // 3. Generate Host Token
+        console.log('🔑 Generating LiveKit token...');
         const token = await createLiveKitToken(roomName, userId, true);
+        console.log('✅ Token generated successfully');
 
-        res.json({
+        const responseData = {
             meetingId,
             password,
             roomName,
             token
+        };
+
+        console.log('📤 Sending response:', {
+            meetingId,
+            password,
+            roomName,
+            tokenLength: token?.length || 0
         });
 
+        res.json(responseData);
+        console.log('✅ ===== CREATE MEETING SUCCESS =====');
+
     } catch (err) {
-        console.error("Create Meeting Error:", err);
-        res.status(500).json({ error: err.message });
+        console.error('💥 ===== CREATE MEETING ERROR =====');
+        console.error('❌ Error message:', err.message);
+        console.error('❌ Error stack:', err.stack);
+        console.error('❌ Full error:', err);
+
+        res.status(500).json({
+            error: err.message,
+            details: 'Check Railway logs for full error'
+        });
     }
 });
+
 
 // POST /join-meeting
 app.post('/join-meeting', async (req, res) => {
