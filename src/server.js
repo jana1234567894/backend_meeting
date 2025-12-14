@@ -123,11 +123,15 @@ app.post('/create-meeting', async (req, res) => {
         }
 
         // 1. Generate IDs
-        const part1 = Math.random().toString(36).substring(2, 5);
-        const part2 = Math.random().toString(36).substring(2, 6);
-        const part3 = Math.random().toString(36).substring(2, 5);
-        const meetingId = `${part1}-${part2}-${part3}`;
-        const password = Math.random().toString(36).substring(2, 8);
+        // Generate UPPERCASE meeting code (ABC-DEF-GHI format)
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const part1 = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        const part2 = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        const part3 = Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        const meetingId = `${part1}-${part2}-${part3}`.toUpperCase();
+
+        // Generate 6-digit numeric password
+        const password = Math.floor(100000 + Math.random() * 900000).toString();
 
         console.log('🎲 Generated meetingId:', meetingId);
         console.log('🔐 Generated password:', password);
