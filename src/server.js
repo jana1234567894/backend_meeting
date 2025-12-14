@@ -141,7 +141,7 @@ app.post('/create-meeting', async (req, res) => {
         const { error } = await supabase
             .from('meetings')
             .insert({
-                meeting_id: meetingId,
+                meeting_code: meetingId,
                 password: password,
                 livekit_room: roomName,
                 host_id: userId,
@@ -200,7 +200,7 @@ app.post('/join-meeting', async (req, res) => {
         const { data: meeting, error } = await supabase
             .from('meetings')
             .select('*')
-            .eq('meeting_id', meetingId)
+            .eq('meeting_code', meetingId)
             .eq('is_active', true)
             .single();
 
@@ -237,7 +237,7 @@ app.post('/end-meeting', async (req, res) => {
         const { data: meeting } = await supabase
             .from('meetings')
             .select('*')
-            .eq('meeting_id', meetingId)
+            .eq('meeting_code', meetingId)
             .single();
 
         if (!meeting || meeting.host_id !== userId) {
@@ -255,7 +255,7 @@ app.post('/end-meeting', async (req, res) => {
         await supabase
             .from('meetings')
             .delete()
-            .eq('meeting_id', meetingId);
+            .eq('meeting_code', meetingId);
 
         res.json({ success: true });
 
