@@ -84,6 +84,8 @@ app.use(express.json());
 
 // Railway automatically sets PORT
 const PORT = process.env.PORT || 8080;
+console.log(`🔌 PORT from Railway: ${process.env.PORT || 'NOT SET (using default 8080)'}`);
+console.log(`🔌 Final PORT value: ${PORT}`);
 
 // Logging Middleware
 app.use((req, res, next) => {
