@@ -125,10 +125,12 @@ const createLiveKitToken = async (roomName, userId, isHost) => {
 
 // Health Check Endpoint (Required for Railway)
 app.get('/health', (req, res) => {
-    res.json({
+    console.log('🏥 Health check received from:', req.ip);
+    res.status(200).json({
         ok: true,
         timestamp: new Date().toISOString(),
-        service: 'PolyGlotMeet Backend'
+        service: 'PolyGlotMeet Backend',
+        uptime: process.uptime()
     });
 });
 
