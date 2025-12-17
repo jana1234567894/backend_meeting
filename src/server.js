@@ -9,6 +9,50 @@ dotenv.config();
 
 const app = express();
 
+// ============================================
+// 1. Environment Validation (Fail Fast)
+// ============================================
+const requiredEnvVars = ['LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET', 'LIVEKIT_URL', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
+const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+
+if (missingVars.length > 0) {
+    console.error(`❌ CRITICAL ERROR: Missing environment variables: ${missingVars.join(', ')}`);
+    console.error('See README.md for setup instructions.');
+    // In production, we might want to hard crash so Railway restarts us with correct vars
+    // process.exit(1); 
+} else {
+    console.log('✅ All required environment variables are present.');
+}
+
+// ============================================
+// 2. Initialize Clients
+// ============================================
+let supabase;
+let roomService;
+
+try {
+    // Initialize Supabase Client (Service Role)
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
+        supabase = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_KEY
+        );
+        console.log('✅ Supabase Client initialized');
+    }
+
+    // Initialize LiveKit Room Service
+    if (process.env.LIVEKIT_URL && process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET) {
+        roomService = new RoomServiceClient(
+            process.env.LIVEKIT_URL,
+            process.env.LIVEKIT_API_KEY,
+            process.env.LIVEKIT_API_SECRET
+        );
+        console.log('✅ LiveKit RoomService initialized');
+    }
+} catch (error) {
+    console.error("❌ Failed to initialize clients:", error);
+}
+
 // CORS Configuration - Permissive for testing (tighten in production)
 app.use(cors({
     origin: '*',
@@ -21,27 +65,6 @@ app.use(express.json());
 
 // Railway automatically sets PORT
 const PORT = process.env.PORT || 3000;
-
-// Initialize Supabase Client (Service Role)
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-);
-
-// Initialize LiveKit Room Service
-const roomService = new RoomServiceClient(
-    process.env.LIVEKIT_URL,
-    process.env.LIVEKIT_API_KEY,
-    process.env.LIVEKIT_API_SECRET
-);
-
-// Environment Validation
-const requiredEnvVars = ['LIVEKIT_API_KEY', 'LIVEKIT_API_SECRET', 'LIVEKIT_URL', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
-const missingVars = requiredEnvVars.filter(v => !process.env[v]);
-if (missingVars.length > 0) {
-    console.warn(`⚠️  Missing environment variables: ${missingVars.join(', ')}`);
-    console.warn('⚠️  Server will start but features may not work correctly.');
-}
 
 // Logging Middleware
 app.use((req, res, next) => {
