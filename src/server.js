@@ -325,9 +325,29 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server - MUST bind to 0.0.0.0 for Railway
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Backend Authority Server running on port ${PORT}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ LiveKit URL: ${process.env.LIVEKIT_URL || 'NOT SET'}`);
     console.log(`✅ Supabase URL: ${process.env.SUPABASE_URL || 'NOT SET'}`);
+});
+
+// Keep server alive and handle graceful shutdown
+server.keepAliveTimeout = 120000; // 120 seconds
+server.headersTimeout = 120000;
+
+process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received, closing server gracefully...');
+    server.close(() => {
+        console.log('✅ Server closed gracefully');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 SIGINT received, closing server gracefully...');
+    server.close(() => {
+        console.log('✅ Server closed gracefully');
+        process.exit(0);
+    });
 });
