@@ -7,6 +7,25 @@ import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
+// ============================================
+// CRITICAL: Error Handlers (Must be first)
+// ============================================
+process.on('uncaughtException', (error) => {
+    console.error('🔥 UNCAUGHT EXCEPTION:', error);
+    console.error('Stack:', error.stack);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('🔥 UNHANDLED REJECTION at:', promise);
+    console.error('Reason:', reason);
+    process.exit(1);
+});
+
+console.log('🚀 Starting PolyGlotMeet Backend...');
+console.log('📍 Node version:', process.version);
+console.log('📍 Working directory:', process.cwd());
+
 const app = express();
 
 // ============================================
